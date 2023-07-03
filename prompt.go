@@ -174,13 +174,11 @@ func (p *Prompt) Run() (string, error) {
 
 		if !p.LazyValidation {
 			err = validFn(cur.Get())
-			if err != nil {
-				prompt = render(p.Templates.invalid, p.Label)
-			} else {
-				prompt = render(p.Templates.valid, p.Label)
-			}
+		}
+		if err != nil {
+			prompt = render(p.Templates.invalid, p.Label)
 		} else {
-			prompt = render(p.Templates.prompt, p.Label)
+			prompt = render(p.Templates.valid, p.Label)
 		}
 
 		echo := cur.Format()
