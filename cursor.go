@@ -59,11 +59,7 @@ func NewCursor(startinginput string, pointer Pointer, eraseDefault bool) Cursor 
 		pointer = defaultCursor
 	}
 	cur := Cursor{Cursor: pointer, Position: len(startinginput), input: []rune(startinginput), erase: eraseDefault}
-	if eraseDefault {
-		cur.Start()
-	} else {
-		cur.End()
-	}
+	cur.End()
 	return cur
 }
 
