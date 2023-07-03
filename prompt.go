@@ -170,7 +170,7 @@ func (p *Prompt) Run() (string, error) {
 		if err != nil {
 			prompt = render(p.Templates.invalid, p.Label)
 		} else {
-			prompt = render(p.Templates.prompt, p.Label)
+			prompt = render(p.Templates.valid, p.Label)
 		}
 
 		echo := cur.Format()
@@ -214,6 +214,9 @@ func (p *Prompt) Run() (string, error) {
 		if err.Error() == "Interrupt" {
 			err = ErrInterrupt
 		}
+		sb.Reset()
+		sb.WriteString("")
+		sb.Flush()
 		rl.Write([]byte(showCursor))
 		rl.Close()
 		return "", err
