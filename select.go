@@ -155,6 +155,11 @@ type SelectTemplates struct {
 	// Selected is a text/template for when an item was successfully selected.
 	Selected string
 
+	// Success is a text/template for the prompt label when the user has pressed entered and the value has been
+	// deemed valid by the validation function. The label will keep using this template even when the prompt ends
+	// inside the console.
+	Success string
+
 	// Details is a text/template for when an item current active to show
 	// additional information. It can have multiple lines.
 	//
@@ -179,6 +184,7 @@ type SelectTemplates struct {
 	active   *template.Template
 	inactive *template.Template
 	selected *template.Template
+	success  *template.Template
 	details  *template.Template
 	help     *template.Template
 }
@@ -344,7 +350,6 @@ func (s *Select) innerRun(cursorPos, scroll int, top rune) (int, string, error) 
 			sb.WriteString("No results")
 		} else {
 			active := items[idx]
-
 			details := s.renderDetails(active)
 			for _, d := range details {
 				sb.Write(d)
@@ -380,9 +385,6 @@ func (s *Select) innerRun(cursorPos, scroll int, top rune) (int, string, error) 
 		if err.Error() == "Interrupt" {
 			err = ErrInterrupt
 		}
-		sb.Reset()
-		sb.WriteString("")
-		sb.Flush()
 		rl.Write([]byte(showCursor))
 		rl.Close()
 		return 0, "", err
@@ -395,7 +397,9 @@ func (s *Select) innerRun(cursorPos, scroll int, top rune) (int, string, error) 
 		clearScreen(sb)
 	} else {
 		sb.Reset()
-		sb.Write(render(s.Templates.selected, item))
+		prompt := render(s.Templates.success, s.Label)
+		prompt = append(prompt, []byte(fmt.Sprintf("%v", item))...)
+		sb.Write(prompt)
 		sb.Flush()
 	}
 
@@ -462,6 +466,17 @@ func (s *Select) prepareTemplates() error {
 		return err
 	}
 	tpls.selected = tpl
+
+	if tpls.Success == "" {
+		tpls.Success = fmt.Sprintf("{{ . | faint }}%s ", Styler(FGFaint)(":"))
+	}
+
+	tpl, err = template.New("").Funcs(tpls.FuncMap).Parse(tpls.Success)
+	if err != nil {
+		return err
+	}
+
+	tpls.success = tpl
 
 	if tpls.Details != "" {
 		tpl, err = template.New("").Funcs(tpls.FuncMap).Parse(tpls.Details)
